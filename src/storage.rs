@@ -5,16 +5,17 @@ use std::{env, fs};
 // path to ~/.config can be retreived from $XDG_CONFIG_HOME
 // env::var("...")
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Identity {
     name: String,
     email: String,
     gpg: Option<String>,
+    // Switch to an (optional) array of hosts and directory
     host: Option<String>,
     directory: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct File {
     identities: Vec<Identity>,
 }
