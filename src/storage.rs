@@ -59,8 +59,6 @@ impl File {
             .canonicalize()
             .map_err(|_| ConfigFileError::PathDoesntExist)?;
 
-        println!("{}", file_path.display());
-
         let config_raw =
             fs::read_to_string(file_path).map_err(|_| ConfigFileError::FileNotFound)?;
 
