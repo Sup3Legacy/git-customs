@@ -1,9 +1,9 @@
-use std::{fs, env};
+use std::env;
 
 use crate::CliArgs;
 use anyhow::Result;
 
-pub fn main(args: CliArgs) -> Result<()> {
+pub fn run(args: CliArgs) -> Result<()> {
     let local = env::current_dir()?;
 
     let dir = match args.path {

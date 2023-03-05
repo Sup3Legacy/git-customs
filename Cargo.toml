@@ -1,6 +1,7 @@
 [package]
-author = "cst1"
+authors = ["cst1"]
 name = "gitcustoms"
+description = "A simple Git identity checker and manager."
 version = "0.1.0"
 edition = "2021"
 

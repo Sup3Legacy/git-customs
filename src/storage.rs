@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::Path;
 use std::{env, fs};
 
@@ -6,20 +7,42 @@ use std::{env, fs};
 // env::var("...")
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Identity {
-    name: String,
-    email: String,
+pub struct User {
+    email: Option<String>,
     gpg: Option<String>,
     // Switch to an (optional) array of hosts and directory
-    host: Option<String>,
-    directory: Option<String>,
+    host: Option<Vec<String>>,
+    directory: Option<Vec<String>>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Commit {
+    #[serde(rename = "gpgSign")]
+    gpg_sign: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Pull {
+    rebase: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Identity {
+    // Switch to an (optional) array of hosts and directory
+    host: Option<Vec<String>>,
+    directory: Option<Vec<String>>,
+
+    user: Option<User>,
+    commit: Option<Commit>,
+    pull: Option<Pull>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct File {
-    identities: Vec<Identity>,
+    identities: HashMap<String, Identity>,
 }
 
+#[derive(Debug)]
 pub enum ConfigFileError {
     PathDoesntExist,
     FileNotFound,
@@ -29,13 +52,26 @@ pub enum ConfigFileError {
 impl File {
     pub fn read() -> Result<Self, ConfigFileError> {
         let config_path =
-            env::var("$XDG_CONFIG_HOME").map_err(|_| ConfigFileError::PathDoesntExist)?;
+            env::var("XDG_CONFIG_HOME").map_err(|_| ConfigFileError::PathDoesntExist)?;
 
-        let file_path = Path::new(&config_path).join("gitcustoms.toml");
+        let file_path = Path::new(&config_path)
+            .join("gitcustoms.toml")
+            .canonicalize()
+            .map_err(|_| ConfigFileError::PathDoesntExist)?;
+
+        println!("{}", file_path.display());
 
         let config_raw =
             fs::read_to_string(file_path).map_err(|_| ConfigFileError::FileNotFound)?;
 
-        toml::from_str(&config_raw).map_err(|_| ConfigFileError::ParseError)
+        let truc: Result<HashMap<String, Identity>, _> = toml::from_str(&config_raw);
+
+        match truc {
+            Err(e) => {
+                println!("{:#?}", e);
+                Err(ConfigFileError::ParseError)
+            }
+            Ok(u) => Ok(Self { identities: u }),
+        }
     }
 }
